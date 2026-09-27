@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ Function Factory - Types of Functions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #f1f5f9;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --accent-indigo: #4f46e5;
+    --accent-indigo-light: #eef2ff;
+    --accent-cyan: #0284c7;
+    --accent-amber: #d97706;
+    --accent-amber-light: #fef3c7;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --code-bg: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+  }
+
+  body {
+    font-family: 'Kanit', -apple-system, sans-serif;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
+    color: var(--text-main);
+    margin: 0;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  .factory-card {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 480px;
+    border-radius: 24px;
+    padding: 18px;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.07);
+    border: 1px solid var(--card-border);
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px dashed #e2e8f0;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+
+  .title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent-indigo);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .score-badge {
+    background: var(--accent-indigo-light);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--accent-indigo);
+    font-weight: 600;
+  }
+
+  .conveyor-stage {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 14px;
+  }
+
+  .belt-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0;
+  }
+
+  .box {
+    background: #ffffff;
+    border: 2px solid #38bdf8;
+    border-radius: 12px;
+    padding: 6px 8px;
+    text-align: center;
+    flex: 1;
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+
+  .box-title {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .box-value {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  .machine-slot {
+    flex: 1.4;
+    background: #ffffff;
+    border: 2px dashed var(--accent-amber);
+    border-radius: 12px;
+    padding: 6px;
+    text-align: center;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: var(--accent-amber);
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .machine-slot.installed {
+    border-style: solid;
+    background: var(--accent-amber-light);
+    color: #b45309;
+    font-weight: 600;
+  }
+
+  .section-label {
+    font-size: 0.825rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .machine-card {
+    background: #ffffff;
+    border: 1.5px solid var(--card-border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  }
+
+  .machine-card:hover {
+    border-color: #c7d2fe;
+    transform: translateY(-1px);
+  }
+
+  .machine-card.selected {
+    border-color: var(--accent-indigo);
+    background: var(--accent-indigo-light);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+  }
+
+  .card-label {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--accent-indigo);
+    margin-bottom: 4px;
+  }
+
+  pre {
+    margin: 0;
+    font-family: 'Fira Code', Consolas, monospace;
+    font-size: 0.78rem;
+    color: #1e293b;
+    background: var(--code-bg);
+    padding: 8px 10px;
+    border-radius: 8px;
+    border-left: 3px solid var(--accent-indigo);
+    white-space: pre-wrap;
+    line-height: 1.35;
+    font-weight: 500;
+  }
+
+  .run-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 14px;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+    transition: transform 0.1s, box-shadow 0.2s, background 0.2s;
+  }
+
+  .run-btn:disabled {
+    background: #cbd5e1;
+    color: #94a3b8;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .run-btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .msg-toast {
+    text-align: center;
+    font-weight: 600;
+    margin-top: 10px;
+    min-height: 38px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    padding: 6px;
+    border-radius: 8px;
+  }
+
+  .restart-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 14px;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+  }
+</style>
+</head>
+<body>
+
+<div class="factory-card">
+  <div class="header">
+    <div class="title">🏭 C++ Function Types</div>
+    <div class="score-badge" id="level-badge">ด่าน 1/8</div>
+  </div>
+
+  <div class="conveyor-stage">
+    <div class="belt-container">
+      <div class="box">
+        <span class="box-title">INPUT</span>
+        <span class="box-value" id="input-val">ไม่มีข้อมูลส่งเข้า</span>
+      </div>
+
+      <div style="color:var(--text-muted); font-size:1.1rem;">➔</div>
+
+      <div class="machine-slot" id="machine-slot">
+        เลือกยูนิตเครื่องจักรด้านล่าง
+      </div>
+
+      <div style="color:var(--text-muted); font-size:1.1rem;">➔</div>
+
+      <div class="box" style="border-color: var(--accent-amber);">
+        <span class="box-title">TARGET OUTPUT</span>
+        <span class="box-value" id="target-val" style="color: var(--accent-amber);">แสดง "Hello World"</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-body">
+    <div class="section-label">🛠️ เลือกประเภทฟังก์ชัน C++ ที่ตรงกับโจทย์:</div>
+    <div class="options-grid" id="options"></div>
+    <button class="run-btn" id="run-btn" disabled onclick="runFactory()">⚡ เดินเครื่องโรงงาน (RUN)</button>
+  </div>
+
+  <div id="msg" class="msg-toast"></div>
+</div>
+
+<script>
+const unitNames = [
+  "ยูนิตประมวลผล Alpha-01",
+  "ยูนิตประมวลผล Beta-02",
+  "ยูนิตประมวลผล Gamma-03",
+  "ยูนิตประมวลผล Delta-04"
+];
+
+// ===================================================
+// คลังโจทย์ 8 ด่าน เรื่อง "ประเภทของฟังก์ชัน" (ง่าย -> ยากมาก)
+// ===================================================
+const levels = [
+  // --- ด่านที่ 1 (ง่ายมาก): ไม่รับค่า - ไม่ส่งค่า ---
+  {
+    inputLabel: "ไม่มีข้อมูลส่งเข้า",
+    targetLabel: 'แสดง "Hello World" ออกทางจอ',
+    options: [
+      { code: "void sayHello() {\n  cout << \"Hello World\";\n}", correct: true, explain: "" },
+      { code: "int sayHello() {\n  cout << \"Hello World\";\n}", correct: false, explain: "ระบุประเภทเป็น int แต่ภายในฟังก์ชันไม่มีคำสั่ง return ส่งค่ากลับ" },
+      { code: "void sayHello() {\n  return \"Hello World\";\n}", correct: false, explain: "ฟังก์ชันชนิด void ไม่สามารถใช้ return ส่งค่าข้อความกลับได้" },
+      { code: "sayHello() {\n  cout << \"Hello World\";\n}", correct: false, explain: "ขาดการระบุ Return Type (เช่น void) หน้าชื่อฟังก์ชัน" }
+    ]
+  },
+
+  // --- ด่านที่ 2 (ง่าย): ไม่รับค่า - มีส่งค่า ---
+  {
+    inputLabel: "ไม่มีข้อมูลส่งเข้า",
+    targetLabel: "คืนค่าตัวเลข 100 กลับไปใช้งาน",
+    options: [
+      { code: "int getBonus() {\n  return 100;\n}", correct: true, explain: "" },
+      { code: "void getBonus() {\n  return 100;\n}", correct: false, explain: "ฟังก์ชันชนิด void ไม่สามารถส่งคืนค่าตัวเลข 100 ได้" },
+      { code: "int getBonus() {\n  cout << 100;\n}", correct: false, explain: "ใช้ cout แค่แสดงผลออกจอ แต่ไม่ได้ 'ส่งค่ากลับ' ด้วยคำสั่ง return" },
+      { code: "int getBonus(int x) {\n  return 100;\n}", correct: false, explain: "โจทย์ไม่ได้ส่งค่าเข้า จึงไม่ต้องมี Parameter (int x)" }
+    ]
+  },
+
+  // --- ด่านที่ 3 (ง่าย-ปานกลาง): มีรับค่า - ไม่ส่งค่า ---
+  {
+    inputLabel: "score = 85",
+    targetLabel: 'แสดง "Score: 85" ออกทางจอ',
+    options: [
+      { code: "void printScore(int score) {\n  cout << \"Score: \" << score;\n}", correct: true, explain: "" },
+      { code: "void printScore(score) {\n  cout << \"Score: \" << score;\n}", correct: false, explain: "ขาดการระบุชนิดข้อมูล int ให้กับ Parameter score" },
+      { code: "int printScore(int score) {\n  cout << \"Score: \" << score;\n}", correct: false, explain: "ระบุประเภทคืนค่าเป็น int แต่ไม่มีคำสั่ง return ค่ากลับไป" },
+      { code: "void printScore(int score) {\n  return \"Score: \" + score;\n}", correct: false, explain: "ฟังก์ชัน void ห้ามส่งค่ากลับด้วยคำสั่ง return" }
+    ]
+  },
+
+  // --- ด่านที่ 4 (ปานกลาง): มีรับค่า - มีส่งค่า ---
+  {
+    inputLabel: "a = 15, b = 25",
+    targetLabel: "คืนค่าผลรวม 40 กลับไปโปรแกรมหลัก",
+    options: [
+      { code: "int sum(int a, int b) {\n  return a + b;\n}", correct: true, explain: "" },
+      { code: "void sum(int a, int b) {\n  return a + b;\n}", correct: false, explain: "ฟังก์ชันชนิด void ห้ามใช้คำสั่ง return ส่งค่ากลับ" },
+      { code: "int sum(int a, b) {\n  return a + b;\n}", correct: false, explain: "ขาดการระบุชนิดข้อมูล int หน้าตัวแปร b ใน Parameter List" },
+      { code: "int sum(int a, int b) {\n  cout << a + b;\n}", correct: false, explain: "ใช้ cout แสดงผลออกจอเท่านั้น แต่ไม่ได้ 'คืนค่ากลับ' ด้วย return" }
+    ]
+  },
+
+  // --- ด่านที่ 5 (ปานกลาง-ยาก): การเลือก Return Type เพื่อนำไปคำนวณต่อ ---
+  {
+    inputLabel: "r = 7.0 (รัศมีวงกลม)",
+    targetLabel: "คืนค่าพื้นที่ 153.86 นำไปคำนวณต่อ",
+    options: [
+      { code: "double getArea(double r) {\n  return 3.14 * r * r;\n}", correct: true, explain: "" },
+      { code: "void getArea(double r) {\n  cout << 3.14 * r * r;\n}", correct: false, explain: "ฟังก์ชัน void แค่แสดงผลออกจอ ทำให้โปรแกรมหลักนำค่าไปคำนวณต่อไม่ได้" },
+      { code: "double getArea() {\n  return 3.14 * r * r;\n}", correct: false, explain: "ไม่ได้รับค่าตัวแปร r ผ่าน Parameter เข้ามาใช้งาน" },
+      { code: "int getArea(double r) {\n  return 3.14 * r * r;\n}", correct: false, explain: "ใช้ชนิด int จะทำให้ค่าทศนิยมสูญหาย (ถูกตัดเหลือแค่ 153)" }
+    ]
+  },
+
+  // --- ด่านที่ 6 (ยาก): รับหลาย Parameter ต่างชนิด & ส่งคืน Boolean ---
+  {
+    inputLabel: 'name = "Alex", age = 18',
+    targetLabel: "คืนค่า true (1) ถ้าอายุถึงเกณฑ์ 18 ปี",
+    options: [
+      { code: "bool checkEligible(string name, int age) {\n  return age >= 18;\n}", correct: true, explain: "" },
+      { code: "void checkEligible(string name, int age) {\n  return age >= 18;\n}", correct: false, explain: "ฟังก์ชันชนิด void ไม่สามารถส่งคืนค่าความจริง (bool) กลับไปได้" },
+      { code: "bool checkEligible(string name, age) {\n  return age >= 18;\n}", correct: false, explain: "ขาดการระบุชนิดข้อมูล int หน้าตัวแปร age" },
+      { code: "bool checkEligible(string name, int age) {\n  cout << (age >= 18);\n}", correct: false, explain: "ใช้ cout แสดงผลออกจอ แต่ไม่มีคำสั่ง return คืนค่าความจริงกลับไป" }
+    ]
+  },
+
+  // --- ด่านที่ 7 (ยากมาก 🔥): Control Flow Return Path (คืนค่าครบทุกเงื่อนไข) ---
+  {
+    inputLabel: "score = 45 (เช็กสอบผ่าน/ตก)",
+    targetLabel: "คืนค่า true ถ้าผ่าน / false ถ้าตก",
+    options: [
+      { code: "bool isPass(int score) {\n  if (score >= 50) {\n    return true;\n  }\n  return false;\n}", correct: true, explain: "" },
+      { code: "bool isPass(int score) {\n  if (score >= 50) {\n    return true;\n  }\n}", correct: false, explain: "ขาดคำสั่ง return false เมื่อคะแนนน้อยกว่า 50 ทำให้บางเงื่อนไขไม่มีการส่งค่ากลับ" },
+      { code: "void isPass(int score) {\n  if (score >= 50) return true;\n  else return false;\n}", correct: false, explain: "ฟังก์ชัน void ห้ามส่งค่า boolean กลับด้วยคำสั่ง return" },
+      { code: "bool isPass(score) {\n  return score >= 50;\n}", correct: false, explain: "ขาดการระบุชนิดข้อมูล int ให้กับ Parameter score" }
+    ]
+  },
+
+  // --- ด่านที่ 8 (ยากมาก 🔥): Type Casting & Returning Float/Double vs Integer Division ---
+  {
+    inputLabel: "s1 = 80, s2 = 75, s3 = 90",
+    targetLabel: "คืนค่าเฉลี่ย 81.67 เก็บเข้าตัวแปร double avg",
+    options: [
+      { code: "double getAverage(int s1, int s2, int s3) {\n  return (s1 + s2 + s3) / 3.0;\n}", correct: true, explain: "" },
+      { code: "void getAverage(int s1, int s2, int s3) {\n  double avg = (s1 + s2 + s3) / 3.0;\n  cout << avg;\n}", correct: false, explain: "เป็นฟังก์ชัน void ไม่สามารถคืนค่าไปจัดเก็บลงในตัวแปร double avg ของโปรแกรมหลักได้" },
+      { code: "double getAverage(int s1, int s2, int s3) {\n  return (s1 + s2 + s3) / 3;\n}", correct: false, explain: "การหารด้วย 3 (จำนวนเต็ม) จะทำให้ทศนิยมโดนตัดทิ้งตั้งแต่ง่ายๆ คืนค่าเป็น 81.0" },
+      { code: "double getAverage(s1, s2, s3) {\n  return (s1 + s2 + s3) / 3.0;\n}", correct: false, explain: "ขาดการระบุชนิดข้อมูล int ให้กับ Parameter ทุกตัว" }
+    ]
+  }
+];
+
+let currentLevel = 0;
+let selectedOptionIndex = null;
+let currentShuffledOptions = [];
+
+function shuffleArray(array) {
+  let arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function loadLevel() {
+  const lvl = levels[currentLevel];
+  selectedOptionIndex = null;
+
+  document.getElementById('level-badge').innerText = `ด่าน ${currentLevel + 1}/${levels.length}`;
+  document.getElementById('input-val').innerText = lvl.inputLabel;
+  document.getElementById('target-val').innerText = lvl.targetLabel;
+
+  const slot = document.getElementById('machine-slot');
+  slot.className = 'machine-slot';
+  slot.innerText = 'เลือกยูนิตเครื่องจักรด้านล่าง';
+
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('msg').innerText = '';
+
+  currentShuffledOptions = shuffleArray(lvl.options);
+
+  const optsDiv = document.getElementById('options');
+  optsDiv.innerHTML = '';
+
+  currentShuffledOptions.forEach((opt, idx) => {
+    const card = document.createElement('div');
+    card.className = 'machine-card';
+    card.innerHTML = `
+      <div class="card-label">⚙️ ${unitNames[idx]}</div>
+      <pre>${opt.code}</pre>
+    `;
+    card.onclick = () => selectOption(idx);
+    optsDiv.appendChild(card);
+  });
+}
+
+function selectOption(index) {
+  selectedOptionIndex = index;
+  const cards = document.querySelectorAll('.machine-card');
+
+  cards.forEach((card, idx) => {
+    if (idx === index) {
+      card.classList.add('selected');
+    } else {
+      card.classList.remove('selected');
+    }
+  });
+
+  const slot = document.getElementById('machine-slot');
+  slot.className = 'machine-slot installed';
+  slot.innerHTML = `<div><strong>[ติดตั้ง ${unitNames[index]}]</strong></div>`;
+
+  document.getElementById('run-btn').disabled = false;
+}
+
+function runFactory() {
+  if (selectedOptionIndex === null) return;
+
+  const chosen = currentShuffledOptions[selectedOptionIndex];
+  const isCorrect = chosen.correct;
+  const msg = document.getElementById('msg');
+  const runBtn = document.getElementById('run-btn');
+
+  runBtn.disabled = true;
+
+  if (isCorrect) {
+    msg.style.color = 'var(--accent-green)';
+    msg.innerText = '✨ ถูกต้อง! สร้างโครงสร้างฟังก์ชันได้ถูกต้องตามโจทย์';
+    
+    setTimeout(() => {
+      currentLevel++;
+      if (currentLevel < levels.length) {
+        loadLevel();
+      } else {
+        showWinScreen();
+      }
+    }, 1200);
+  } else {
+    msg.style.color = 'var(--accent-red)';
+    msg.innerText = `💥 ผิดพลาด! ${chosen.explain}`;
+    
+    setTimeout(() => {
+      runBtn.disabled = false;
+    }, 3000);
+  }
+}
+
+function showWinScreen() {
+  document.getElementById('game-body').innerHTML = `
+    <h2 style="text-align:center; color:var(--accent-indigo); margin-top:20px;">🏆 ยินดีด้วย! คุณผ่านครบทั้ง 8 ด่าน</h2>
+    <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; line-height:1.5;">คุณมีความเข้าใจโครงสร้าง การรับค่า และการคืนค่าของฟังก์ชัน C++ อย่างทะลุปรุโปร่ง!</p>
+    <button class="restart-btn" onclick="location.reload()">เล่นใหม่อีกครั้ง 🔄</button>
+  `;
+}
+
+loadLevel();
+</script>
+
+</body>
+</html>
