@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Node Chain Assembler - Singly Linked List Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #f1f5f9;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --accent-blue: #2563eb;
+    --accent-blue-light: #eff6ff;
+    --accent-purple: #7c3aed;
+    --accent-amber: #d97706;
+    --accent-amber-light: #fef3c7;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --code-bg: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+  }
+
+  body {
+    font-family: 'Kanit', -apple-system, sans-serif;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
+    color: var(--text-main);
+    margin: 0;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  .game-card {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 520px;
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--card-border);
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px dashed #e2e8f0;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .badge {
+    background: var(--accent-blue-light);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--accent-blue);
+    font-weight: 600;
+  }
+
+  .visual-stage {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+  }
+
+  .task-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .task-title {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .chain-display {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px 4px;
+  }
+
+  .node-box {
+    background: #ffffff;
+    border: 2px solid var(--accent-blue);
+    border-radius: 10px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    white-space: nowrap;
+  }
+
+  .node-data {
+    color: var(--accent-purple);
+  }
+
+  .arrow {
+    color: var(--text-muted);
+    font-weight: bold;
+  }
+
+  .null-box {
+    background: #e2e8f0;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-card {
+    background: #ffffff;
+    border: 1.5px solid var(--card-border);
+    border-radius: 14px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .option-card:hover {
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+  }
+
+  .option-card.selected {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue-light);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+  }
+
+  pre {
+    margin: 0;
+    font-family: 'Fira Code', Consolas, monospace;
+    font-size: 0.78rem;
+    color: #1e293b;
+    white-space: pre-wrap;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  .run-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 16px;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+
+  .run-btn:disabled {
+    background: #cbd5e1;
+    color: #94a3b8;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .msg-toast {
+    text-align: center;
+    font-weight: 600;
+    margin-top: 12px;
+    min-height: 40px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    padding: 8px;
+    border-radius: 10px;
+  }
+
+  .restart-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="game-card">
+  <div class="header">
+    <div class="title">🔗 Node Chain Assembler</div>
+    <div class="badge" id="level-badge">ด่าน 1/6</div>
+  </div>
+
+  <div class="visual-stage">
+    <div class="task-desc">🎯 ภารกิจประมวลผล Linked List:</div>
+    <div class="task-title" id="task-title">สร้าง Node ใหม่ใส่ข้อมูล</div>
+    <div class="chain-display" id="chain-visual"></div>
+  </div>
+
+  <div id="game-body">
+    <div style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 500;">
+      🛠️ เลือกชุดคำสั่ง C++ ที่ต่อ Pointer ได้ถูกต้องโดยไม่ทำสายหลุด:
+    </div>
+    <div class="options-grid" id="options"></div>
+    <button class="run-btn" id="run-btn" disabled onclick="runAssembler()">⚡ เชื่อมต่อ Pointer (EXECUTE)</button>
+  </div>
+
+  <div id="msg" class="msg-toast"></div>
+</div>
+
+<script>
+const levels = [
+  // --- ด่านที่ 1: การสร้าง Node ใหม่ ---
+  {
+    title: "สร้าง Node ใหม่เก็บค่า 10 และตั้งค่า Pointer เริ่มต้น",
+    visual: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <span class="null-box">NULL</span>',
+    options: [
+      {
+        code: "Node* newNode = new Node();\nnewNode->data = 10;\nnewNode->next = NULL;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "Node* newNode = new Node();\nnewNode->data = 10;\n// ลืมกำหนด newNode->next",
+        correct: false,
+        explain: "ลืมตั้งค่า newNode->next = NULL จะทำให้ Pointer ชี้ไปที่ขยะใน memory (Wild Pointer)"
+      },
+      {
+        code: "Node* newNode = NULL;\nnewNode->data = 10;\nnewNode->next = NULL;",
+        correct: false,
+        explain: "กำหนด newNode เป็น NULL แล้วไปเข้าถึง ->data จะเกิด Null Pointer Exception (โปรแกรม Crash!)"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 2: แทรก Node ที่ Head (Insert Front) ---
+  {
+    title: "นำ newNode (ค่า 5) แทรกไว้ที่ 'หน้าสุด' ของ List (Insert Head)",
+    visual: '<span style="color:#d97706; font-weight:bold;">newNode[5]</span> | <span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
+    options: [
+      {
+        code: "newNode->next = head;\nhead = newNode;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "head = newNode;\nnewNode->next = head;",
+        correct: false,
+        explain: "ย้าย head ไปชี้ newNode ก่อน ทำให้ newNode->next ชี้เข้าตัวเอง (เกิด Infinite Loop) และ Node เก่าใน List หายไปทั้งแถบ!"
+      },
+      {
+        code: "head->next = newNode;\nhead = newNode;",
+        correct: false,
+        explain: "เขียนผิดเอา head->next ไปชี้ newNode ทำให้โครงสร้างเดิมพัง และตำแหน่งแทรกไม่ถูกต้อง"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 3: การท่องผ่าน List (Traverse to Tail) ---
+  {
+    title: "เลื่อน Pointer 'temp' ไปหยุดที่ 'Node ตัวสุดท้าย' เพื่อเตรียมต่อท้าย",
+    visual: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
+    options: [
+      {
+        code: "Node* temp = head;\nwhile (temp->next != NULL) {\n    temp = temp->next;\n}",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "Node* temp = head;\nwhile (temp != NULL) {\n    temp = temp->next;\n}",
+        correct: false,
+        explain: "เช็กเงื่อนไข temp != NULL จะทำให้ temp เลื่อนเลย Node สุดท้ายไปหยุดที่ NULL ทำให้ต่อ Node ใหม่ไม่ได้"
+      },
+      {
+        code: "Node* temp = head;\ntemp = temp->next;",
+        correct: false,
+        explain: "ขยับ temp เพียงครั้งเดียว ไม่ใช่การวนลูปเพื่อหา Node ตัวสุดท้ายของ List ทั้งหมด"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 4: แทรก Node ที่ Tail (Insert Back) ---
+  {
+    title: "นำ newNode (ค่า 20) ต่อเข้าที่ 'ท้ายสุด' ของ List โดย temp อยู่ที่ Node ตัวสุดท้ายแล้ว",
+    visual: '<div class="node-box">5 | next</div> ➔ <div class="node-box">10 (temp)</div> ➔ <span class="null-box">NULL</span>  | <span style="color:#d97706; font-weight:bold;">newNode[20]</span>',
+    options: [
+      {
+        code: "temp->next = newNode;\nnewNode->next = NULL;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "newNode->next = temp;\ntemp = newNode;",
+        correct: false,
+        explain: "เอา newNode ไปชี้ temp ย้อนกลับ ทำให้ Linked List ผิดทิศทาง (กลายเป็น Loop)"
+      },
+      {
+        code: "head->next = newNode;",
+        correct: false,
+        explain: "ไปต่อ newNode เข้ากับ head->next โดยตรง จะทำให้ Node กลางๆ (ค่า 10) ถูกตัดทิ้งและข้อมูลสูญหาย (Data Leak)"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 5: ลบ Node ตัวแรก (Delete Head) ---
+  {
+    title: "ลบ Node ตัวแรกสุด (ค่า 5) ออกจาก List โดยไม่ให้เกิด Memory Leak",
+    visual: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <div class="node-box">20 | next</div> ➔ <span class="null-box">NULL</span>',
+    options: [
+      {
+        code: "Node* temp = head;\nhead = head->next;\ndelete temp;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "delete head;\nhead = head->next;",
+        correct: false,
+        explain: "สั่ง delete head ไปก่อน ทำให้ memory ของ head ถูกคืนระบบไปแล้ว การไปเรียก head->next บรรทัดถัดมาจะ Crash ทันที!"
+      },
+      {
+        code: "head = head->next;\n// ข้ามการ delete",
+        correct: false,
+        explain: "เลื่อน head ข้ามไปอย่างเดียวโดยไม่ delete temp จะทำให้เกิด Memory Leak (พื้นที่ขยะค้างในแรม)"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 6: แทรก Node ตรงกลาง (Insert Middle) ---
+  {
+    title: "นำ newNode (ค่า 15) แทรกระหว่าง curr (ค่า 10) กับ Node ถัดไป (ค่า 20)",
+    visual: '<div class="node-box">10 (curr)</div> ➔ <div class="node-box">20 | next</div> | <span style="color:#d97706; font-weight:bold;">newNode[15]</span>',
+    options: [
+      {
+        code: "newNode->next = curr->next;\ncurr->next = newNode;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "curr->next = newNode;\nnewNode->next = curr->next;",
+        correct: false,
+        explain: "สั่ง curr->next = newNode ก่อน ทำให้สายที่ชี้ไป Node 20 หลุด! และ newNode->next จะกลับมาชี้ตัวเอง"
+      },
+      {
+        code: "newNode->next = curr;\ncurr->next = newNode->next;",
+        correct: false,
+        explain: "ลำดับคำสั่งผิดพลาด ทำให้ Pointer วนกลับมาจุดเดิมและไม่สามารถเชื่อมต่อ Node 20 ได้"
+      }
+    ]
+  }
+];
+
+let currentLevel = 0;
+let selectedOptionIndex = null;
+let currentShuffledOptions = [];
+
+function shuffleArray(array) {
+  let arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function loadLevel() {
+  const lvl = levels[currentLevel];
+  selectedOptionIndex = null;
+
+  document.getElementById('level-badge').innerText = `ด่าน ${currentLevel + 1}/${levels.length}`;
+  document.getElementById('task-title').innerText = lvl.title;
+  document.getElementById('chain-visual').innerHTML = lvl.visual;
+
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('msg').innerText = '';
+
+  currentShuffledOptions = shuffleArray(lvl.options);
+
+  const optsDiv = document.getElementById('options');
+  optsDiv.innerHTML = '';
+
+  currentShuffledOptions.forEach((opt, idx) => {
+    const card = document.createElement('div');
+    card.className = 'option-card';
+    card.innerHTML = `<pre>${opt.code}</pre>`;
+    card.onclick = () => selectOption(idx);
+    optsDiv.appendChild(card);
+  });
+}
+
+function selectOption(index) {
+  selectedOptionIndex = index;
+  const cards = document.querySelectorAll('.option-card');
+
+  cards.forEach((card, idx) => {
+    if (idx === index) {
+      card.classList.add('selected');
+    } else {
+      card.classList.remove('selected');
+    }
+  });
+
+  document.getElementById('run-btn').disabled = false;
+}
+
+function runAssembler() {
+  if (selectedOptionIndex === null) return;
+
+  const chosen = currentShuffledOptions[selectedOptionIndex];
+  const isCorrect = chosen.correct;
+  const msg = document.getElementById('msg');
+  const runBtn = document.getElementById('run-btn');
+
+  runBtn.disabled = true;
+
+  if (isCorrect) {
+    msg.style.color = 'var(--accent-green)';
+    msg.innerText = '✨ ถูกต้อง! เชื่อมต่อ Pointer ได้สมบูรณ์ สาย Linked List ไม่ขาด';
+    
+    setTimeout(() => {
+      currentLevel++;
+      if (currentLevel < levels.length) {
+        loadLevel();
+      } else {
+        showWinScreen();
+      }
+    }, 1300);
+  } else {
+    msg.style.color = 'var(--accent-red)';
+    msg.innerText = `💥 สายหลุด/เกิด Bug! ${chosen.explain}`;
+    
+    setTimeout(() => {
+      runBtn.disabled = false;
+    }, 3200);
+  }
+}
+
+function showWinScreen() {
+  document.getElementById('game-body').innerHTML = `
+    <h2 style="text-align:center; color:var(--accent-blue); margin-top:20px;">🏆 ยินดีด้วย! คุณคือ Pointer Master</h2>
+    <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; line-height:1.5;">คุณเข้าใจลำดับการต่อ Pointer ของ Singly Linked List อย่างแม่นยำ ไม่ทำสายหลุดและไร้ปัญหา Memory Leak!</p>
+    <button class="restart-btn" onclick="location.reload()">เล่นใหม่อีกครั้ง 🔄</button>
+  `;
+}
+
+loadLevel();
+</script>
+
+</body>
+</html>
