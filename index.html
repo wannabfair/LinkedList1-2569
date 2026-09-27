@@ -6,7 +6,7 @@
 <title>Node Chain Assembler - Singly Linked List Game</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600;700&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-main: #f1f5f9;
@@ -40,7 +40,7 @@
   .game-card {
     background: var(--card-bg);
     width: 100%;
-    max-width: 540px;
+    max-width: 560px;
     border-radius: 24px;
     padding: 20px;
     box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
@@ -116,19 +116,52 @@
   }
 
   .task-title {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     color: var(--text-main);
     font-weight: 700;
     margin-bottom: 12px;
+    line-height: 1.4;
   }
 
+  /* --- ระบบจัดการองค์ประกอบ Visual เพื่อป้องกันบรรทัดแตกบนมือถือ --- */
   .chain-display {
     display: flex;
-    align-items: center;
+    align-items: flex-end; /* จัดให้ฐานของโหนดเสมอกันด้านล่าง */
     justify-content: flex-start;
     gap: 6px;
     overflow-x: auto;
-    padding: 8px 4px;
+    padding: 10px 4px 6px 4px;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .node-group {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .ptr-tag {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+
+  .ptr-head { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+  .ptr-curr { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+  .ptr-temp { background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; }
+  .ptr-new  { background: #fed7aa; color: #c2410c; border: 1px solid #fdba74; }
+
+  .ptr-arrow {
+    font-size: 0.75rem;
+    line-height: 1;
+    margin-bottom: 3px;
+    font-weight: bold;
   }
 
   .node-box {
@@ -149,11 +182,34 @@
   .null-box {
     background: #e2e8f0;
     border-radius: 6px;
-    padding: 4px 8px;
+    padding: 5px 8px;
     font-family: 'Fira Code', monospace;
     font-size: 0.75rem;
     color: #64748b;
     font-weight: 600;
+    flex-shrink: 0;
+    align-self: flex-end;
+    margin-bottom: 2px;
+  }
+
+  .chain-arrow {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #64748b;
+    flex-shrink: 0;
+    align-self: flex-end;
+    margin-bottom: 8px;
+  }
+
+  .divider {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #94a3b8;
+    padding: 0 6px;
+    flex-shrink: 0;
+    align-self: flex-end;
+    margin-bottom: 4px;
+    user-select: none;
   }
 
   .options-grid {
@@ -275,14 +331,22 @@
 
 <script>
 // ===================================================
-// คลังโจทย์ 8 ด่าน (ภาษาเข้าใจง่าย ตัด Comment ออกทั้งหมด)
+// คลังโจทย์ 8 ด่าน (ใช้โครงสร้าง UI ตัวชี้ด้านบนชี้ลงมา)
 // ===================================================
 const levels = [
   // --- ด่านที่ 1 ---
   {
     title: "1. จองพื้นที่สร้างโหนดใหม่ชื่อ newNode เก็บค่า 10 และตั้งค่า next ให้ชี้ไปที่ NULL",
-    visualBefore: '<span style="color:#64748b; font-style:italic;">(ยังไม่มีโหนดถูกสร้างขึ้นใน Memory)</span>',
-    visualAfter: '<span style="color:#d97706; font-weight:bold;">newNode[10]</span> ➔ <span class="null-box">NULL</span>',
+    visualBefore: '<span style="color:#64748b; font-style:italic; margin-bottom:4px;">(ยังไม่มีโหนดถูกสร้างขึ้นใน Memory)</span>',
+    visualAfter: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-new">newNode</div>
+        <div class="ptr-arrow" style="color:#c2410c;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
     options: [
       {
         code: "Node* newNode = new Node();\nnewNode->data = 10;\nnewNode->next = NULL;",
@@ -297,7 +361,7 @@ const levels = [
       {
         code: "Node* newNode = NULL;\nnewNode->data = 10;\nnewNode->next = NULL;",
         correct: false,
-        explain: " newNode เป็น NULL แล้วพยายามเข้าถึง ->data จะเกิด Null Pointer Exception (โปรแกรม Crash)"
+        explain: "newNode เป็น NULL แล้วพยายามเข้าถึง ->data จะเกิด Null Pointer Exception (โปรแกรม Crash)"
       }
     ]
   },
@@ -305,8 +369,30 @@ const levels = [
   // --- ด่านที่ 2 ---
   {
     title: "2. กำหนดให้ head ชี้ไปยัง newNode (ค่า 10) เพื่อเริ่มต้นขบวน Linked List",
-    visualBefore: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <span class="null-box">NULL</span> &nbsp;|&nbsp; <span style="color:#d97706; font-weight:bold;">newNode[10]</span> ➔ <span class="null-box">NULL</span>',
-    visualAfter: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
+    visualBefore: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="null-box">NULL</div>
+      </div>
+      <span class="divider">|</span>
+      <div class="node-group">
+        <div class="ptr-tag ptr-new">newNode</div>
+        <div class="ptr-arrow" style="color:#c2410c;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
+    visualAfter: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
     options: [
       {
         code: "head = newNode;",
@@ -329,8 +415,34 @@ const levels = [
   // --- ด่านที่ 3 ---
   {
     title: "3. นำโหนดใหม่ newNode (ค่า 5) มาต่อแทรกด้านหน้าสุดของขบวน (ให้อยู่หน้าโหนด 10)",
-    visualBefore: '<span style="color:#d97706; font-weight:bold;">newNode[5]</span> &nbsp;|&nbsp; <span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
-    visualAfter: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
+    visualBefore: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-new">newNode</div>
+        <div class="ptr-arrow" style="color:#c2410c;">↓</div>
+        <div class="node-box">5 | next</div>
+      </div>
+      <span class="divider">|</span>
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
+    visualAfter: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">5 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
     options: [
       {
         code: "newNode->next = head;\nhead = newNode;",
@@ -353,8 +465,34 @@ const levels = [
   // --- ด่านที่ 4 ---
   {
     title: "4. เลื่อนตัวชี้ curr ที่ชี้อยู่ที่โหนด 5 ให้ขยับไปชี้โหนดถัดไป (โหนด 10)",
-    visualBefore: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 (curr)</div> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
-    visualAfter: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 (curr)</div> ➔ <span class="null-box">NULL</span>',
+    visualBefore: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head / curr</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">5 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
+    visualAfter: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">5 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="ptr-tag ptr-curr">curr</div>
+        <div class="ptr-arrow" style="color:#b45309;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
     options: [
       {
         code: "curr = curr->next;",
@@ -377,8 +515,34 @@ const levels = [
   // --- ด่านที่ 5 ---
   {
     title: "5. เขียนวนลูปเลื่อนตัวชี้ temp ไปเรื่อยๆ จนกว่าจะหยุดอยู่ที่โหนดตัวสุดท้ายของขบวน",
-    visualBefore: '<span style="font-weight:bold; color:#2563eb;">[head/temp]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
-    visualAfter: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 (temp)</div> ➔ <span class="null-box">NULL</span>',
+    visualBefore: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head / temp</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">5 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
+    visualAfter: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">5 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="ptr-tag ptr-temp">temp</div>
+        <div class="ptr-arrow" style="color:#6b21a8;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
     options: [
       {
         code: "Node* temp = head;\nwhile (temp->next != NULL) {\n    temp = temp->next;\n}",
@@ -401,8 +565,48 @@ const levels = [
   // --- ด่านที่ 6 ---
   {
     title: "6. นำโหนดใหม่ newNode (ค่า 20) ไปต่อเข้ากับโหนดตัวสุดท้าย (temp)",
-    visualBefore: '<div class="node-box">5 | next</div> ➔ <div class="node-box">10 (temp)</div> ➔ <span class="null-box">NULL</span> &nbsp;|&nbsp; <span style="color:#d97706; font-weight:bold;">newNode[20]</span>',
-    visualAfter: '<div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <div class="node-box">20 (newNode)</div> ➔ <span class="null-box">NULL</span>',
+    visualBefore: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">5 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="ptr-tag ptr-temp">temp</div>
+        <div class="ptr-arrow" style="color:#6b21a8;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+      <span class="divider">|</span>
+      <div class="node-group">
+        <div class="ptr-tag ptr-new">newNode</div>
+        <div class="ptr-arrow" style="color:#c2410c;">↓</div>
+        <div class="node-box">20 | next</div>
+      </div>
+    `,
+    visualAfter: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">5 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="ptr-tag ptr-temp">temp</div>
+        <div class="ptr-arrow" style="color:#6b21a8;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="ptr-tag ptr-new">newNode</div>
+        <div class="ptr-arrow" style="color:#c2410c;">↓</div>
+        <div class="node-box">20 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
     options: [
       {
         code: "temp->next = newNode;",
@@ -425,8 +629,36 @@ const levels = [
   // --- ด่านที่ 7 ---
   {
     title: "7. ลบโหนดตัวแรกสุด (โหนด 5) ออกจากขบวนอย่างถูกต้อง โดยคืนพื้นที่แรมด้วย",
-    visualBefore: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <div class="node-box">20 | next</div> ➔ <span class="null-box">NULL</span>',
-    visualAfter: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">10 | next</div> ➔ <div class="node-box">20 | next</div> ➔ <span class="null-box">NULL</span>',
+    visualBefore: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">5 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="node-box">20 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
+    visualAfter: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-head">head</div>
+        <div class="ptr-arrow" style="color:#1d4ed8;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="node-box">20 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
     options: [
       {
         code: "Node* temp = head;\nhead = head->next;\ndelete temp;",
@@ -449,8 +681,42 @@ const levels = [
   // --- ด่านที่ 8 ---
   {
     title: "8. นำโหนดใหม่ newNode (ค่า 15) แทรกระหว่างโหนด curr (ค่า 10) กับโหนดถัดไป (ค่า 20)",
-    visualBefore: '<div class="node-box">10 (curr)</div> ➔ <div class="node-box">20 | next</div> &nbsp;|&nbsp; <span style="color:#d97706; font-weight:bold;">newNode[15]</span>',
-    visualAfter: '<div class="node-box">10 (curr)</div> ➔ <div class="node-box">15 (newNode)</div> ➔ <div class="node-box">20 | next</div>',
+    visualBefore: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-curr">curr</div>
+        <div class="ptr-arrow" style="color:#b45309;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="node-box">20 | next</div>
+      </div>
+      <span class="divider">|</span>
+      <div class="node-group">
+        <div class="ptr-tag ptr-new">newNode</div>
+        <div class="ptr-arrow" style="color:#c2410c;">↓</div>
+        <div class="node-box">15 | next</div>
+      </div>
+    `,
+    visualAfter: `
+      <div class="node-group">
+        <div class="ptr-tag ptr-curr">curr</div>
+        <div class="ptr-arrow" style="color:#b45309;">↓</div>
+        <div class="node-box">10 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="ptr-tag ptr-new">newNode</div>
+        <div class="ptr-arrow" style="color:#c2410c;">↓</div>
+        <div class="node-box">15 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="node-group">
+        <div class="node-box">20 | next</div>
+      </div>
+      <span class="chain-arrow">➔</span>
+      <div class="null-box">NULL</div>
+    `,
     options: [
       {
         code: "newNode->next = curr->next;\ncurr->next = newNode;",
