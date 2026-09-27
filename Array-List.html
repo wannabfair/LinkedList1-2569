@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Array List Master - Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600;700&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #f1f5f9;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --accent-blue: #2563eb;
+    --accent-blue-light: #eff6ff;
+    --accent-purple: #7c3aed;
+    --accent-amber: #d97706;
+    --accent-green: #10b981;
+    --accent-green-light: #d1fae5;
+    --accent-red: #ef4444;
+    --code-bg: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+  }
+
+  body {
+    font-family: 'Kanit', -apple-system, sans-serif;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
+    color: var(--text-main);
+    margin: 0;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  .game-card {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 560px;
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--card-border);
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px dashed #e2e8f0;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .badge {
+    background: var(--accent-blue-light);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--accent-blue);
+    font-weight: 600;
+  }
+
+  .visual-stage {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .visual-stage.success-state {
+    background: var(--accent-green-light);
+    border-color: var(--accent-green);
+  }
+
+  .stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .task-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .state-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #e2e8f0;
+    color: var(--text-muted);
+  }
+
+  .state-tag.after {
+    background: var(--accent-green);
+    color: #ffffff;
+  }
+
+  .task-title {
+    font-size: 0.92rem;
+    color: var(--text-main);
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  /* --- Array Visualizer Styling --- */
+  .array-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .meta-bar {
+    display: flex;
+    gap: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .meta-pill {
+    background: #ffffff;
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+  }
+
+  .array-grid {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 6px 2px;
+    white-space: nowrap;
+  }
+
+  .array-cell-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .cell-index {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .cell-box {
+    width: 44px;
+    height: 44px;
+    background: #ffffff;
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-main);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+
+  .cell-box.active {
+    border-color: var(--accent-blue);
+    background: #ffffff;
+    color: var(--accent-blue);
+  }
+
+  .cell-box.empty {
+    border-style: dashed;
+    background: #f1f5f9;
+    color: #cbd5e1;
+  }
+
+  .cell-box.highlight {
+    border-color: var(--accent-amber);
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  .options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-card {
+    background: #ffffff;
+    border: 1.5px solid var(--card-border);
+    border-radius: 14px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .option-card:hover {
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+  }
+
+  .option-card.selected {
+    border-color: var(--accent-blue);
+    background: var(--accent-blue-light);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+  }
+
+  pre {
+    margin: 0;
+    font-family: 'Fira Code', Consolas, monospace;
+    font-size: 0.82rem;
+    color: #1e293b;
+    white-space: pre-wrap;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  .action-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 16px;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+
+  .action-btn.next-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  }
+
+  .action-btn:disabled {
+    background: #cbd5e1;
+    color: #94a3b8;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .msg-toast {
+    text-align: center;
+    font-weight: 600;
+    margin-top: 12px;
+    min-height: 30px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .restart-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="game-card">
+  <div class="header">
+    <div class="title">📦 Array List Master</div>
+    <div class="badge" id="level-badge">ด่าน 1/8</div>
+  </div>
+
+  <div class="visual-stage" id="stage-box">
+    <div class="stage-header">
+      <span class="task-desc">🎯 สถานะของ Array List:</span>
+      <span class="state-tag" id="state-tag">BEFORE</span>
+    </div>
+    <div class="task-title" id="task-title">โจทย์ทดสอบ</div>
+    <div class="array-container" id="array-visual"></div>
+  </div>
+
+  <div id="game-body">
+    <div style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 10px; font-weight: 500;">
+      🛠️ เลือกชุดคำสั่ง C++ ที่จัดการ Array List ได้ถูกต้อง:
+    </div>
+    <div class="options-grid" id="options"></div>
+    
+    <button class="action-btn" id="action-btn" disabled onclick="handleButtonClick()">⚡ รันคำสั่ง (EXECUTE)</button>
+  </div>
+
+  <div id="msg" class="msg-toast"></div>
+</div>
+
+<script>
+// ฟังก์ชันช่วย Render Array
+function renderArray(arr, size, capacity, highlightIndices = []) {
+  let html = `
+    <div class="meta-bar">
+      <span class="meta-pill">size = <b>${size}</b></span>
+      <span class="meta-pill">capacity = <b>${capacity}</b></span>
+    </div>
+    <div class="array-grid">
+  `;
+  for (let i = 0; i < capacity; i++) {
+    const isOccupied = i < size;
+    const isHighlight = highlightIndices.includes(i);
+    let cellClass = 'cell-box';
+    let valText = isOccupied ? arr[i] : '-';
+
+    if (isHighlight) {
+      cellClass += ' highlight';
+    } else if (isOccupied) {
+      cellClass += ' active';
+    } else {
+      cellClass += ' empty';
+    }
+
+    html += `
+      <div class="array-cell-unit">
+        <div class="cell-index">[${i}]</div>
+        <div class="${cellClass}">${valText}</div>
+      </div>
+    `;
+  }
+  html += `</div>`;
+  return html;
+}
+
+// ===================================================
+// คลังโจทย์ 8 ด่านเรื่อง Array List
+// ===================================================
+const levels = [
+  // --- ด่านที่ 1 ---
+  {
+    title: "1. จองพื้นที่ Array ขนาดความจุ (capacity) 5 ช่อง และตั้งค่าจำนวนข้อมูลปัจจุบัน (size) เป็น 0",
+    visualBefore: renderArray([], 0, 0),
+    visualAfter: renderArray([], 0, 5),
+    options: [
+      {
+        code: "int capacity = 5;\nint size = 0;\nint arr[capacity];",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "int capacity = 5;\nint size = 5;\nint arr[capacity];",
+        correct: false,
+        explain: "กำหนด size = 5 ทั้งที่ยังไม่ได้ใส่ข้อมูลจริง จะทำให้โปรแกรมอ่านค่าขยะในช่อง"
+      },
+      {
+        code: "int capacity = 0;\nint size = 0;\nint arr[capacity];",
+        correct: false,
+        explain: "ความจุ capacity เป็น 0 ไม่สามารถเก็บข้อมูลได้"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 2 ---
+  {
+    title: "2. เพิ่มข้อมูลค่า 10 ต่อท้าย Array List (Append)",
+    visualBefore: renderArray([], 0, 5),
+    visualAfter: renderArray([10], 1, 5, [0]),
+    options: [
+      {
+        code: "arr[size] = 10;\nsize++;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "size++;\narr[size] = 10;",
+        correct: false,
+        explain: "ขยับ size ขึ้นก่อน จะทำให้ใส่ข้อมูลที่ index 1 ข้ามช่อง index 0 ไป"
+      },
+      {
+        code: "arr[0] = 10;",
+        correct: false,
+        explain: "ใส่ข้อมูลได้ แต่ลืมขยับค่า size++ ทำให้ระบบยังมองว่า Array ว่างอยู่"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 3 ---
+  {
+    title: "3. แทรกค่า 15 ลงใน Index 1 ของ List [10, 20, 30] (ต้อง Shift ข้อมูลไปทางขวาก่อน)",
+    visualBefore: renderArray([10, 20, 30], 3, 5),
+    visualAfter: renderArray([10, 15, 20, 30], 4, 5, [1]),
+    options: [
+      {
+        code: "for (int i = size; i > 1; i--) {\n    arr[i] = arr[i - 1];\n}\narr[1] = 15;\nsize++;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "arr[1] = 15;\nsize++;",
+        correct: false,
+        explain: "เขียนทับ index 1 ตรงๆ โดยไม่ Shift ข้อมูล จะทำให้ค่า 20 เดิมสูญหาย"
+      },
+      {
+        code: "for (int i = 1; i < size; i++) {\n    arr[i] = arr[i + 1];\n}\narr[1] = 15;\nsize++;",
+        correct: false,
+        explain: "วนลูป Shift ข้อมูลผิดทิศทาง ทำให้ข้อมูลเดิมโดนทับเสียหาย"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 4 ---
+  {
+    title: "4. ลบข้อมูลที่ Index 0 ออกจาก List [10, 15, 20] (ต้อง Shift ข้อมูลมาทางซ้ายเพื่อปิดช่องว่าง)",
+    visualBefore: renderArray([10, 15, 20], 3, 5, [0]),
+    visualAfter: renderArray([15, 20], 2, 5),
+    options: [
+      {
+        code: "for (int i = 0; i < size - 1; i++) {\n    arr[i] = arr[i + 1];\n}\nsize--;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "arr[0] = 0;\nsize--;",
+        correct: false,
+        explain: "การเคลียร์ค่าเป็น 0 ไม่ได้ขยับข้อมูลตัวถัดมาปิดช่องว่าง ทำให้เกิดช่องโหว่กลาง List"
+      },
+      {
+        code: "size--;",
+        correct: false,
+        explain: "ลดแค่ size แต่ไม่ Shift ข้อมูล ทำให้ข้อมูลตัวถัดๆ ไปไม่อยู่ในตำแหน่งที่ถูกต้อง"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 5 ---
+  {
+    title: "5. ตรวจสอบว่า Array List เต็ม (Overflow) แล้วหรือยัง ก่อนที่จะทำการเพิ่มข้อมูลใหม่",
+    visualBefore: renderArray([10, 20, 30], 3, 3),
+    visualAfter: renderArray([10, 20, 30], 3, 3),
+    options: [
+      {
+        code: "if (size == capacity) {\n    cout << \"List is Full!\";\n}",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "if (size == 0) {\n    cout << \"List is Full!\";\n}",
+        correct: false,
+        explain: "size == 0 คือการเช็คว่า List ว่างเปล่า ไม่ใช่ List เต็ม"
+      },
+      {
+        code: "if (arr[size] != 0) {\n    cout << \"List is Full!\";\n}",
+        correct: false,
+        explain: "arr[size] เป็นพื้นที่นอกขอบเขตข้อมูลปัจจุบัน ไม่ใช่เงื่อนไขเช็คความจุ"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 6 ---
+  {
+    title: "6. ดึงข้อมูลจาก Index 2 ขึ้นมาแสดงผล (การเข้าถึงแบบ Direct Access / O(1))",
+    visualBefore: renderArray([5, 10, 15, 20], 4, 5, [2]),
+    visualAfter: renderArray([5, 10, 15, 20], 4, 5, [2]),
+    options: [
+      {
+        code: "int val = arr[2];",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "int val = arr[size];",
+        correct: false,
+        explain: "arr[size] จะชี้ไปที่ช่องว่างต่อจากข้อมูลตัวสุดท้าย ไม่ใช่ Index 2"
+      },
+      {
+        code: "int val;\nfor(int i=0; i<=2; i++) val = arr[2];",
+        correct: false,
+        explain: "Array สามารถเข้าถึงผ่าน index ตรงๆ ได้ใน O(1) ไม่จำเป็นต้องเขียนลูปวนอ่าน"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 7 ---
+  {
+    title: "7. ขยายขนาดความจุ Array เมื่อเต็ม (Dynamic Resizing) จากความจุ 2 เพิ่มเป็น 4 เท่าตัว",
+    visualBefore: renderArray([10, 20], 2, 2),
+    visualAfter: renderArray([10, 20], 2, 4),
+    options: [
+      {
+        code: "int* newArr = new int[capacity * 2];\nfor (int i = 0; i < size; i++) newArr[i] = arr[i];\ndelete[] arr;\narr = newArr;\ncapacity *= 2;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "capacity *= 2;",
+        correct: false,
+        explain: "การเปลี่ยนแค่ตัวแปร capacity ไม่ได้ขยายพื้นที่หน่วยความจำในแรมจริง"
+      },
+      {
+        code: "arr = new int[capacity * 2];\ncapacity *= 2;",
+        correct: false,
+        explain: "จอง Array ใหม่ทับ Pointer เดิมโดยไม่ก๊อปปี้ข้อมูลเก่า ทำให้ข้อมูล 10, 20 หายหมด"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 8 ---
+  {
+    title: "8. ค้นหาตำแหน่ง (Index) ของค่า 20 ใน List ด้วยวิธี Linear Search",
+    visualBefore: renderArray([5, 10, 20, 30], 4, 5, [2]),
+    visualAfter: renderArray([5, 10, 20, 30], 4, 5, [2]),
+    options: [
+      {
+        code: "int targetIndex = -1;\nfor (int i = 0; i < size; i++) {\n    if (arr[i] == 20) { targetIndex = i; break; }\n}",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "int targetIndex = arr[20];",
+        correct: false,
+        explain: "การเอา 20 ไปใส่ในวงเล็บ index จะเป็นการเข้าถึง index ที่ 20 ซึ่งเกินขอบเขต Array"
+      },
+      {
+        code: "int targetIndex = -1;\nfor (int i = 0; i < capacity; i++) {\n    if (arr[i] == 20) targetIndex = i;\n}",
+        correct: false,
+        explain: "ควรวนลูปแค่ถึง size ไม่ใช่วนถึง capacity เพราะส่วนที่เหลือเป็นค่าขยะในแรม"
+      }
+    ]
+  }
+];
+
+let currentLevel = 0;
+let selectedOptionIndex = null;
+let currentShuffledOptions = [];
+let isAnsweredCorrect = false;
+
+function shuffleArray(array) {
+  let arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function loadLevel() {
+  const lvl = levels[currentLevel];
+  selectedOptionIndex = null;
+  isAnsweredCorrect = false;
+
+  document.getElementById('level-badge').innerText = `ด่าน ${currentLevel + 1}/${levels.length}`;
+  document.getElementById('task-title').innerText = lvl.title;
+  
+  const stageBox = document.getElementById('stage-box');
+  stageBox.className = 'visual-stage';
+  
+  const stateTag = document.getElementById('state-tag');
+  stateTag.className = 'state-tag';
+  stateTag.innerText = 'BEFORE';
+  
+  document.getElementById('array-visual').innerHTML = lvl.visualBefore;
+
+  const actionBtn = document.getElementById('action-btn');
+  actionBtn.className = 'action-btn';
+  actionBtn.innerText = '⚡ รันคำสั่ง (EXECUTE)';
+  actionBtn.disabled = true;
+
+  document.getElementById('msg').innerText = '';
+
+  currentShuffledOptions = shuffleArray(lvl.options);
+
+  const optsDiv = document.getElementById('options');
+  optsDiv.innerHTML = '';
+
+  currentShuffledOptions.forEach((opt, idx) => {
+    const card = document.createElement('div');
+    card.className = 'option-card';
+    card.innerHTML = `<pre>${opt.code}</pre>`;
+    card.onclick = () => selectOption(idx);
+    optsDiv.appendChild(card);
+  });
+}
+
+function selectOption(index) {
+  if (isAnsweredCorrect) return;
+
+  selectedOptionIndex = index;
+  const cards = document.querySelectorAll('.option-card');
+
+  cards.forEach((card, idx) => {
+    if (idx === index) {
+      card.classList.add('selected');
+    } else {
+      card.classList.remove('selected');
+    }
+  });
+
+  document.getElementById('action-btn').disabled = false;
+}
+
+function handleButtonClick() {
+  if (isAnsweredCorrect) {
+    currentLevel++;
+    if (currentLevel < levels.length) {
+      loadLevel();
+    } else {
+      showWinScreen();
+    }
+    return;
+  }
+
+  if (selectedOptionIndex === null) return;
+
+  const lvl = levels[currentLevel];
+  const chosen = currentShuffledOptions[selectedOptionIndex];
+  const isCorrect = chosen.correct;
+  const msg = document.getElementById('msg');
+  const actionBtn = document.getElementById('action-btn');
+
+  if (isCorrect) {
+    isAnsweredCorrect = true;
+
+    const stageBox = document.getElementById('stage-box');
+    stageBox.className = 'visual-stage success-state';
+    
+    const stateTag = document.getElementById('state-tag');
+    stateTag.className = 'state-tag after';
+    stateTag.innerText = 'AFTER (สำเร็จ!)';
+
+    document.getElementById('array-visual').innerHTML = lvl.visualAfter;
+
+    msg.style.color = 'var(--accent-green)';
+    msg.innerText = '✨ ถูกต้อง! จัดการ Array List ได้อย่างแม่นยำ';
+
+    actionBtn.innerText = 'ไปข้อถัดไป ➔';
+    actionBtn.className = 'action-btn next-btn';
+    actionBtn.disabled = false;
+
+  } else {
+    msg.style.color = 'var(--accent-red)';
+    msg.innerText = `💥 เกิดข้อผิดพลาด! ${chosen.explain}`;
+  }
+}
+
+function showWinScreen() {
+  document.getElementById('game-body').innerHTML = `
+    <h2 style="text-align:center; color:var(--accent-blue); margin-top:20px;">🏆 ยินดีด้วย! คุณคือ Array List Master</h2>
+    <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; line-height:1.5;">คุณผ่านครบทั้ง 8 ด่าน เข้าใจกลไก Shift, Resizing และ Indexing ของ Array List ได้อย่างสมบูรณ์!</p>
+    <button class="restart-btn" onclick="location.reload()">เล่นใหม่อีกครั้ง 🔄</button>
+  `;
+}
+
+loadLevel();
+</script>
+
+</body>
+</html>
