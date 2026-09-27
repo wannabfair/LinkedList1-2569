@@ -16,8 +16,8 @@
     --accent-blue-light: #eff6ff;
     --accent-purple: #7c3aed;
     --accent-amber: #d97706;
-    --accent-amber-light: #fef3c7;
     --accent-green: #10b981;
+    --accent-green-light: #d1fae5;
     --accent-red: #ef4444;
     --code-bg: #f8fafc;
     --text-main: #0f172a;
@@ -40,7 +40,7 @@
   .game-card {
     background: var(--card-bg);
     width: 100%;
-    max-width: 520px;
+    max-width: 540px;
     border-radius: 24px;
     padding: 20px;
     box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
@@ -80,13 +80,39 @@
     padding: 14px;
     border: 1px solid #e2e8f0;
     margin-bottom: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .visual-stage.success-state {
+    background: var(--accent-green-light);
+    border-color: var(--accent-green);
+  }
+
+  .stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
   }
 
   .task-desc {
     font-size: 0.85rem;
     color: var(--text-muted);
-    margin-bottom: 10px;
     font-weight: 500;
+  }
+
+  .state-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #e2e8f0;
+    color: var(--text-muted);
+  }
+
+  .state-tag.after {
+    background: var(--accent-green);
+    color: #ffffff;
   }
 
   .task-title {
@@ -118,15 +144,6 @@
     font-weight: 600;
     box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     white-space: nowrap;
-  }
-
-  .node-data {
-    color: var(--accent-purple);
-  }
-
-  .arrow {
-    color: var(--text-muted);
-    font-weight: bold;
   }
 
   .null-box {
@@ -168,7 +185,7 @@
   pre {
     margin: 0;
     font-family: 'Fira Code', Consolas, monospace;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     color: #1e293b;
     white-space: pre-wrap;
     line-height: 1.4;
@@ -227,12 +244,15 @@
 <div class="game-card">
   <div class="header">
     <div class="title">🔗 Node Chain Assembler</div>
-    <div class="badge" id="level-badge">ด่าน 1/6</div>
+    <div class="badge" id="level-badge">ด่าน 1/8</div>
   </div>
 
-  <div class="visual-stage">
-    <div class="task-desc">🎯 ภารกิจประมวลผล Linked List:</div>
-    <div class="task-title" id="task-title">สร้าง Node ใหม่ใส่ข้อมูล</div>
+  <div class="visual-stage" id="stage-box">
+    <div class="stage-header">
+      <span class="task-desc">🎯 ภารกิจประมวลผล Linked List:</span>
+      <span class="state-tag" id="state-tag">BEFORE</span>
+    </div>
+    <div class="task-title" id="task-title">โจทย์ทดสอบ</div>
     <div class="chain-display" id="chain-visual"></div>
   </div>
 
@@ -248,11 +268,15 @@
 </div>
 
 <script>
+// ===================================================
+// คลังโจทย์ 8 ด่าน (เรียงลำดับจาก ง่าย -> ยาก)
+// ===================================================
 const levels = [
-  // --- ด่านที่ 1: การสร้าง Node ใหม่ ---
+  // --- ด่านที่ 1 (ง่ายมาก): สร้าง Node ใหม่ ---
   {
-    title: "สร้าง Node ใหม่เก็บค่า 10 และตั้งค่า Pointer เริ่มต้น",
-    visual: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <span class="null-box">NULL</span>',
+    title: "1. สร้าง Node ใหม่เก็บค่า 10 และตั้งค่า Pointer ชี้ไปที่ NULL",
+    visualBefore: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <span class="null-box">NULL</span>',
+    visualAfter: '<span style="color:#d97706; font-weight:bold;">newNode[10]</span> ➔ <span class="null-box">NULL</span>',
     options: [
       {
         code: "Node* newNode = new Node();\nnewNode->data = 10;\nnewNode->next = NULL;",
@@ -260,22 +284,47 @@ const levels = [
         explain: ""
       },
       {
-        code: "Node* newNode = new Node();\nnewNode->data = 10;\n// ลืมกำหนด newNode->next",
+        code: "Node* newNode = new Node();\nnewNode->data = 10;",
         correct: false,
-        explain: "ลืมตั้งค่า newNode->next = NULL จะทำให้ Pointer ชี้ไปที่ขยะใน memory (Wild Pointer)"
+        explain: "ลืมตั้งค่า newNode->next = NULL จะทำให้ Pointer ชี้ไปที่ตำแหน่งขยะในหน่วยความจำ (Wild Pointer)"
       },
       {
         code: "Node* newNode = NULL;\nnewNode->data = 10;\nnewNode->next = NULL;",
         correct: false,
-        explain: "กำหนด newNode เป็น NULL แล้วไปเข้าถึง ->data จะเกิด Null Pointer Exception (โปรแกรม Crash!)"
+        explain: "กำหนด newNode เป็น NULL แล้วพยายามเข้าถึง ->data จะเกิด Null Pointer Exception (โปรแกรม Crash)"
       }
     ]
   },
 
-  // --- ด่านที่ 2: แทรก Node ที่ Head (Insert Front) ---
+  // --- ด่านที่ 2 (ง่าย): เริ่มต้นจุด head ของ List ---
   {
-    title: "นำ newNode (ค่า 5) แทรกไว้ที่ 'หน้าสุด' ของ List (Insert Head)",
-    visual: '<span style="color:#d97706; font-weight:bold;">newNode[5]</span> | <span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
+    title: "2. กำหนดให้ Pointer 'head' ชี้ไปยัง newNode (ค่า 10) เพื่อเริ่มต้น List",
+    visualBefore: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <span class="null-box">NULL</span>  |  <span style="color:#d97706; font-weight:bold;">newNode[10]</span> ➔ <span class="null-box">NULL</span>',
+    visualAfter: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
+    options: [
+      {
+        code: "head = newNode;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "head->next = newNode;",
+        correct: false,
+        explain: "ปัจจุบัน head ยังเป็น NULL การเรียก head->next จะทำให้โปรแกรม Crash ทันที"
+      },
+      {
+        code: "newNode = head;",
+        correct: false,
+        explain: "เป็นการเอา NULL มาทับ newNode ทำให้ข้อมูลค่า 10 สูญหายไป"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 3 (ปานกลาง): แทรก Node ด้านหน้าสุด (Insert Front) ---
+  {
+    title: "3. นำ newNode (ค่า 5) มาแทรกไว้ด้านหน้าสุดของ List (ต่อหน้า Node 10)",
+    visualBefore: '<span style="color:#d97706; font-weight:bold;">newNode[5]</span>  |  <span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
+    visualAfter: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
     options: [
       {
         code: "newNode->next = head;\nhead = newNode;",
@@ -285,20 +334,45 @@ const levels = [
       {
         code: "head = newNode;\nnewNode->next = head;",
         correct: false,
-        explain: "ย้าย head ไปชี้ newNode ก่อน ทำให้ newNode->next ชี้เข้าตัวเอง (เกิด Infinite Loop) และ Node เก่าใน List หายไปทั้งแถบ!"
+        explain: "ย้าย head ไปชี้ newNode ก่อน ทำให้ newNode->next ชี้เข้าหาตัวเอง (เกิด Infinite Loop) และ Node 10 หลุดหายไป!"
       },
       {
-        code: "head->next = newNode;\nhead = newNode;",
+        code: "head->next = newNode;",
         correct: false,
-        explain: "เขียนผิดเอา head->next ไปชี้ newNode ทำให้โครงสร้างเดิมพัง และตำแหน่งแทรกไม่ถูกต้อง"
+        explain: "เอา head->next ไปชี้ newNode จะกลายเป็นต่อท้าย Node 10 ไม่ใช่การแทรกหน้าสุด"
       }
     ]
   },
 
-  // --- ด่านที่ 3: การท่องผ่าน List (Traverse to Tail) ---
+  // --- ด่านที่ 4 (ปานกลาง): ขยับ Pointer ไปยัง Node ถัดไป ---
   {
-    title: "เลื่อน Pointer 'temp' ไปหยุดที่ 'Node ตัวสุดท้าย' เพื่อเตรียมต่อท้าย",
-    visual: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
+    title: "4. ขยับ Pointer 'curr' ที่ชี้อยู่ที่ Node 5 ให้ขยับไปชี้ที่ Node ถัดไป (Node 10)",
+    visualBefore: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 (curr)</div> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
+    visualAfter: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 (curr)</div> ➔ <span class="null-box">NULL</span>',
+    options: [
+      {
+        code: "curr = curr->next;",
+        correct: true,
+        explain: ""
+      },
+      {
+        code: "curr->next = curr;",
+        correct: false,
+        explain: "คำสั่งนี้จะทำให้ Pointer ของ Node 5 ชี้กลับเข้าหาตัวเอง จนกลายเป็น Loop ไม่ใช่การขยับตัวแปร curr"
+      },
+      {
+        code: "curr = head;",
+        correct: false,
+        explain: "เป็นการสั่งให้ curr ย้อนกลับไปเริ่มที่ head ใหม่ ไม่ใช่การขยับไป Node ถัดไป"
+      }
+    ]
+  },
+
+  // --- ด่านที่ 5 (ปานกลาง-ยาก): การท่องไปยัง Node ตัวสุดท้าย (Traverse) ---
+  {
+    title: "5. เขียนลูปขยับ Pointer 'temp' ไปเรื่อยๆ จนกว่าจะหยุดที่ Node ตัวสุดท้ายของ List",
+    visualBefore: '<span style="font-weight:bold; color:#2563eb;">[head/temp]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <span class="null-box">NULL</span>',
+    visualAfter: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 (temp)</div> ➔ <span class="null-box">NULL</span>',
     options: [
       {
         code: "Node* temp = head;\nwhile (temp->next != NULL) {\n    temp = temp->next;\n}",
@@ -308,43 +382,45 @@ const levels = [
       {
         code: "Node* temp = head;\nwhile (temp != NULL) {\n    temp = temp->next;\n}",
         correct: false,
-        explain: "เช็กเงื่อนไข temp != NULL จะทำให้ temp เลื่อนเลย Node สุดท้ายไปหยุดที่ NULL ทำให้ต่อ Node ใหม่ไม่ได้"
+        explain: "เงื่อนไข temp != NULL จะทำให้ temp ขยับเลย Node สุดท้ายออกไปหยุดที่ NULL ทำให้ใช้งานต่อไม่ได้"
       },
       {
         code: "Node* temp = head;\ntemp = temp->next;",
         correct: false,
-        explain: "ขยับ temp เพียงครั้งเดียว ไม่ใช่การวนลูปเพื่อหา Node ตัวสุดท้ายของ List ทั้งหมด"
+        explain: "เป็นการขยับ temp เพียงแค่ Step เดียว หาก List มีหลาย Node จะไม่ไปถึง Node ตัวสุดท้าย"
       }
     ]
   },
 
-  // --- ด่านที่ 4: แทรก Node ที่ Tail (Insert Back) ---
+  // --- ด่านที่ 6 (ยาก): นำ Node ไปต่อท้ายสุด (Insert Back) [ปรับภาษาให้เข้าใจง่าย] ---
   {
-    title: "นำ newNode (ค่า 20) ต่อเข้าที่ 'ท้ายสุด' ของ List โดย temp อยู่ที่ Node ตัวสุดท้ายแล้ว",
-    visual: '<div class="node-box">5 | next</div> ➔ <div class="node-box">10 (temp)</div> ➔ <span class="null-box">NULL</span>  | <span style="color:#d97706; font-weight:bold;">newNode[20]</span>',
+    title: "6. นำ newNode (ค่า 20) ไปต่อเข้ากับ 'Node ตัวสุดท้าย' (temp) ของ List",
+    visualBefore: '<div class="node-box">5 | next</div> ➔ <div class="node-box">10 (temp)</div> ➔ <span class="null-box">NULL</span>  |  <span style="color:#d97706; font-weight:bold;">newNode[20]</span>',
+    visualAfter: '<div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <div class="node-box">20 (newNode)</div> ➔ <span class="null-box">NULL</span>',
     options: [
       {
-        code: "temp->next = newNode;\nnewNode->next = NULL;",
+        code: "temp->next = newNode;",
         correct: true,
         explain: ""
       },
       {
-        code: "newNode->next = temp;\ntemp = newNode;",
+        code: "newNode->next = temp;",
         correct: false,
-        explain: "เอา newNode ไปชี้ temp ย้อนกลับ ทำให้ Linked List ผิดทิศทาง (กลายเป็น Loop)"
+        explain: "เอา newNode ชี้ย้อนกลับไปหา temp ทำให้ทิศทาง Pointer ผิดพลาดและกลายเป็น Loop"
       },
       {
         code: "head->next = newNode;",
         correct: false,
-        explain: "ไปต่อ newNode เข้ากับ head->next โดยตรง จะทำให้ Node กลางๆ (ค่า 10) ถูกตัดทิ้งและข้อมูลสูญหาย (Data Leak)"
+        explain: "ไปต่อ newNode เข้ากับ head->next โดยตรง จะทำให้ Node กลางๆ โดนตัดทิ้งและข้อมูลสูญหาย (Data Leak)"
       }
     ]
   },
 
-  // --- ด่านที่ 5: ลบ Node ตัวแรก (Delete Head) ---
+  // --- ด่านที่ 7 (ยาก): ลบ Node ตัวแรก (Delete Head) ---
   {
-    title: "ลบ Node ตัวแรกสุด (ค่า 5) ออกจาก List โดยไม่ให้เกิด Memory Leak",
-    visual: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <div class="node-box">20 | next</div> ➔ <span class="null-box">NULL</span>',
+    title: "7. ลบ Node ตัวแรกสุด (ค่า 5) ออกจาก List ให้ถูกต้อง และคืนพื้นที่หน่วยความจำ",
+    visualBefore: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">5 | next</div> ➔ <div class="node-box">10 | next</div> ➔ <div class="node-box">20 | next</div> ➔ <span class="null-box">NULL</span>',
+    visualAfter: '<span style="font-weight:bold; color:#2563eb;">[head]</span> ➔ <div class="node-box">10 | next</div> ➔ <div class="node-box">20 | next</div> ➔ <span class="null-box">NULL</span>',
     options: [
       {
         code: "Node* temp = head;\nhead = head->next;\ndelete temp;",
@@ -354,20 +430,21 @@ const levels = [
       {
         code: "delete head;\nhead = head->next;",
         correct: false,
-        explain: "สั่ง delete head ไปก่อน ทำให้ memory ของ head ถูกคืนระบบไปแล้ว การไปเรียก head->next บรรทัดถัดมาจะ Crash ทันที!"
+        explain: "สั่ง delete head ไปก่อน ทำให้ memory โดน คืนระบบไปแล้ว การไปเรียก head->next บรรทัดถัดมาจะทำให้ Crash ทันที!"
       },
       {
-        code: "head = head->next;\n// ข้ามการ delete",
+        code: "head = head->next;",
         correct: false,
-        explain: "เลื่อน head ข้ามไปอย่างเดียวโดยไม่ delete temp จะทำให้เกิด Memory Leak (พื้นที่ขยะค้างในแรม)"
+        explain: "ขยับ head ข้ามไปอย่างเดียวโดยไม่ delete temp จะเกิด Memory Leak (มีขยะค้างในแรม)"
       }
     ]
   },
 
-  // --- ด่านที่ 6: แทรก Node ตรงกลาง (Insert Middle) ---
+  // --- ด่านที่ 8 (ขั้นเซียน): แทรก Node ตรงกลาง (Insert Middle) ---
   {
-    title: "นำ newNode (ค่า 15) แทรกระหว่าง curr (ค่า 10) กับ Node ถัดไป (ค่า 20)",
-    visual: '<div class="node-box">10 (curr)</div> ➔ <div class="node-box">20 | next</div> | <span style="color:#d97706; font-weight:bold;">newNode[15]</span>',
+    title: "8. นำ newNode (ค่า 15) แทรกระหว่าง curr (ค่า 10) กับ Node ตัวถัดไป (ค่า 20)",
+    visualBefore: '<div class="node-box">10 (curr)</div> ➔ <div class="node-box">20 | next</div>  |  <span style="color:#d97706; font-weight:bold;">newNode[15]</span>',
+    visualAfter: '<div class="node-box">10 (curr)</div> ➔ <div class="node-box">15 (newNode)</div> ➔ <div class="node-box">20 | next</div>',
     options: [
       {
         code: "newNode->next = curr->next;\ncurr->next = newNode;",
@@ -377,12 +454,12 @@ const levels = [
       {
         code: "curr->next = newNode;\nnewNode->next = curr->next;",
         correct: false,
-        explain: "สั่ง curr->next = newNode ก่อน ทำให้สายที่ชี้ไป Node 20 หลุด! และ newNode->next จะกลับมาชี้ตัวเอง"
+        explain: "สั่ง curr->next = newNode ก่อน ทำให้สายที่ชี้ไป Node 20 หลุดหาย และ newNode->next จะวนมาชี้ตัวเอง"
       },
       {
         code: "newNode->next = curr;\ncurr->next = newNode->next;",
         correct: false,
-        explain: "ลำดับคำสั่งผิดพลาด ทำให้ Pointer วนกลับมาจุดเดิมและไม่สามารถเชื่อมต่อ Node 20 ได้"
+        explain: "ต่อ Pointer ผิดทิศทาง ทำให้โครงสร้าง Linked List เสียหาย"
       }
     ]
   }
@@ -407,7 +484,13 @@ function loadLevel() {
 
   document.getElementById('level-badge').innerText = `ด่าน ${currentLevel + 1}/${levels.length}`;
   document.getElementById('task-title').innerText = lvl.title;
-  document.getElementById('chain-visual').innerHTML = lvl.visual;
+  
+  // รีเซ็ต Stage Visual กลับสู่ Before
+  const stageBox = document.getElementById('stage-box');
+  stageBox.className = 'visual-stage';
+  document.getElementById('state-tag').className = 'state-tag';
+  document.getElementById('state-tag').innerText = 'BEFORE';
+  document.getElementById('chain-visual').innerHTML = lvl.visualBefore;
 
   document.getElementById('run-btn').disabled = true;
   document.getElementById('msg').innerText = '';
@@ -444,6 +527,7 @@ function selectOption(index) {
 function runAssembler() {
   if (selectedOptionIndex === null) return;
 
+  const lvl = levels[currentLevel];
   const chosen = currentShuffledOptions[selectedOptionIndex];
   const isCorrect = chosen.correct;
   const msg = document.getElementById('msg');
@@ -452,8 +536,18 @@ function runAssembler() {
   runBtn.disabled = true;
 
   if (isCorrect) {
+    // เปลี่ยนภาพ Stage เป็น AFTER ให้เห็นผลลัพธ์ทันที
+    const stageBox = document.getElementById('stage-box');
+    stageBox.className = 'visual-stage success-state';
+    
+    const stateTag = document.getElementById('state-tag');
+    stateTag.className = 'state-tag after';
+    stateTag.innerText = 'AFTER (สำเร็จ!)';
+
+    document.getElementById('chain-visual').innerHTML = lvl.visualAfter;
+
     msg.style.color = 'var(--accent-green)';
-    msg.innerText = '✨ ถูกต้อง! เชื่อมต่อ Pointer ได้สมบูรณ์ สาย Linked List ไม่ขาด';
+    msg.innerText = '✨ ถูกต้อง! ต่อ Pointer ได้อย่างสมบูรณ์';
     
     setTimeout(() => {
       currentLevel++;
@@ -462,7 +556,7 @@ function runAssembler() {
       } else {
         showWinScreen();
       }
-    }, 1300);
+    }, 2000);
   } else {
     msg.style.color = 'var(--accent-red)';
     msg.innerText = `💥 สายหลุด/เกิด Bug! ${chosen.explain}`;
@@ -476,7 +570,7 @@ function runAssembler() {
 function showWinScreen() {
   document.getElementById('game-body').innerHTML = `
     <h2 style="text-align:center; color:var(--accent-blue); margin-top:20px;">🏆 ยินดีด้วย! คุณคือ Pointer Master</h2>
-    <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; line-height:1.5;">คุณเข้าใจลำดับการต่อ Pointer ของ Singly Linked List อย่างแม่นยำ ไม่ทำสายหลุดและไร้ปัญหา Memory Leak!</p>
+    <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; line-height:1.5;">คุณผ่านครบทั้ง 8 ด่าน เข้าใจลำดับการจัดการ Pointer ของ Singly Linked List อย่างทะลุปรุโปร่ง!</p>
     <button class="restart-btn" onclick="location.reload()">เล่นใหม่อีกครั้ง 🔄</button>
   `;
 }
